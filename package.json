@@ -1,0 +1,78 @@
+{
+  "name": "protoforge",
+  "version": "1.0.0",
+  "description": "AI-Powered Prototype Builder for Hardware, Software, and Hybrid Projects",
+  "type": "module",
+  "main": "bin/protoforge.js",
+  "bin": {
+    "protoforge": "./bin/protoforge.js"
+  },
+  "files": [
+    "bin/",
+    "lib/",
+    "public/"
+  ],
+  "scripts": {
+    "start": "node bin/protoforge.js",
+    "dev": "node --watch bin/protoforge.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "pub": "npm test && npm publish"
+  },
+  "keywords": [
+    "cli",
+    "ai",
+    "prototype",
+    "generator",
+    "tui",
+    "hardware",
+    "software",
+    "iot",
+    "embedded",
+    "arduino",
+    "esp32",
+    "raspberry-pi"
+  ],
+  "author": "ProtoForge Team",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/protoforge/protoforge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/protoforge/protoforge/issues"
+  },
+  "homepage": "https://github.com/protoforge/protoforge#readme",
+  "dependencies": {
+    "axios": "^1.13.5",
+    "chalk": "^5.6.2",
+    "commander": "^12.1.0",
+    "conf": "^12.0.0",
+    "express": "^4.22.1",
+    "figlet": "^1.10.0",
+    "fs-extra": "^11.3.3",
+    "ink": "^6.6.0",
+    "ink-spinner": "^5.0.0",
+    "ink-text-input": "^6.0.0",
+    "inquirer": "^9.3.8",
+    "jszip": "^3.10.1",
+    "open": "^10.2.0",
+    "ora": "^8.2.0",
+    "react": "^19.2.4",
+    "socket.io": "^4.8.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "esbuild": "^0.27.3",
+    "esbuild-register": "^3.6.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0",
+    "vitest": "^3.2.4"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
