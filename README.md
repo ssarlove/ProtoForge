@@ -31,22 +31,17 @@ Our interfaces are built for **efficiency** and **productivity**, not engagement
 ### Prerequisites
 
 - Node.js 18+
-- npm or yarn
+- npm
 - Optional: [Ollama](https://ollama.ai) for local AI generation
 
-### Installation
-
-ProtoForge can be installed using multiple methods:
-
-#### Method 1: npm (Recommended)
+### Global Install (Recommended)
 
 ```bash
-# Install globally
 npm install -g protoforge
-
-# Verify installation
 protoforge --version
 ```
+
+After a global install, the `protoforge` command should work immediately (no `npm link` required).
 
 #### Method 2: Using the Install Command
 
@@ -94,31 +89,31 @@ npm install -g protoforge
 docker run --rm -it protoforge/cli
 ```
 
-### AI Provider Setup
+### Setup (API keys + preferences)
 
-Before first use, run the setup wizard:
+Run:
 
 ```bash
 protoforge setup
 ```
 
-This will guide you through configuring:
-1. **Chatbot** (Required): Ollama (local), OpenAI, Groq, Anthropic, or Gemini
-2. **Image Generation** (Optional): OpenAI DALL-E, Groq Flux, or local Stable Diffusion
-3. **3D Generation** (Optional): Meshy AI for text-to-3D models
-4. **General Settings**: Output directory, browser preferences
+The setup wizard prompts in this order:
+1. **AI provider** (default: Ollama — local & free)
+2. **Ollama URL** (default: http://localhost:11434) and **model** (default: llama3.1)
+3. **Optional cloud AI key** (OpenAI or Groq)
+4. **Optional Meshy API key** (for 3D models)
+5. Web/output settings
+
+Keys are stored locally via the `conf` module in `~/.protoforge/config.json`.
 
 ## Usage
 
 ### Interactive TUI Mode
 
-Start the interactive terminal interface:
-
 ```bash
-protoforge
-# or
 protoforge start
 ```
+(You can also run `protoforge` with no args to start the TUI.)
 
 Navigate with arrow keys:
 - **New Prototype**: Enter a description and generate
@@ -146,9 +141,7 @@ protoforge build "Smart doorbell with camera and mobile app" \
   --type hybrid
 ```
 
-### Web Interface
-
-Launch the local web dashboard:
+### Web Interface (Main Editing Place)
 
 ```bash
 protoforge web
@@ -156,12 +149,12 @@ protoforge web
 protoforge --web
 ```
 
-Opens http://localhost:3000 with:
-- Rich project visualization
-- Mermaid diagram rendering
-- Code syntax highlighting
-- ZIP download
-- Real-time generation progress
+Opens http://localhost:3000 with a split-panel layout:
+- Left: command input + generation log
+- Right tabs: **Scripts** (file browser + editor), **Diagrams** (Mermaid), **3D Models** (Meshy-ready), **BOM**, **Guide**
+- ZIP export
+
+Anti-AI-design enforced: no chat bubbles, no gradients, angular borders, monospace, dense info.
 
 ### Configuration Commands
 
@@ -282,6 +275,21 @@ ProtoForge stores configuration in `~/.protoforge/config.json`:
 ```
 
 ## Development
+
+### Tests
+
+```bash
+npm test
+```
+
+### Debugging generation failures
+
+When generation fails, ProtoForge preserves the output directory and writes:
+- `prototype.raw.txt` (raw model output)
+- `prototype.parse-error.txt` (parse/validation error, if any)
+- `.protoforge-error.txt` (stack trace / error context)
+
+This makes it much easier to reproduce and file issues.
 
 ### Project Structure
 
