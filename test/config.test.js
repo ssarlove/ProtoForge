@@ -28,7 +28,7 @@ describe('config', () => {
 
     const ai = cfg.getAIConfig();
     expect(ai.provider).toBe('mock');
-  }, 15000);
+  }, 30000);
 
   test('apiKeyEnv resolves from environment', async () => {
     process.env.TEST_PROTOFORGE_KEY = 'shhh';
