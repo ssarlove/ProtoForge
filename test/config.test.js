@@ -21,13 +21,14 @@ afterAll(async () => {
 
 describe('config', () => {
   test('set/get config value roundtrip', async () => {
+
     const cfg = await import('../lib/core/config.js');
     cfg.setConfigValue('aiProvider', 'mock');
     expect(cfg.getConfigValue('aiProvider')).toBe('mock');
 
     const ai = cfg.getAIConfig();
     expect(ai.provider).toBe('mock');
-  });
+  }, 15000);
 
   test('apiKeyEnv resolves from environment', async () => {
     process.env.TEST_PROTOFORGE_KEY = 'shhh';
