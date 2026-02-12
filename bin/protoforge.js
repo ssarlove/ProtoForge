@@ -13,7 +13,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import { loadUserEnv } from './lib/core/env.js';
+import { loadUserEnv } from '../lib/core/env.js';
 import { 
   getConfig, 
   getConfigValue, 
@@ -27,11 +27,12 @@ import {
   importConfig,
   watchConfig,
   unwatchConfig
-} from './lib/core/config.js';
+} from '../lib/core/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(__dirname, '..');
 const packageJson = JSON.parse(
-  fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8')
+  fs.readFileSync(path.join(rootDir, 'package.json'), 'utf-8')
 );
 
 const BANNER = `
@@ -60,7 +61,7 @@ async function startTUI() {
   }
   const { render } = await import('ink');
   const React = (await import('react')).default;
-  const { default: App } = await import('./lib/ui/App.js');
+  const { default: App } = await import('../lib/ui/App.js');
   render(React.createElement(App));
 }
 
@@ -107,8 +108,8 @@ async function main() {
     .option('--zip', 'Create zip archive', false)
     .action(async (descParts, opts) => {
       const description = descParts.join(' ').trim();
-      const { generatePrototype } = await import('./lib/core/generator.js');
-      const { createProjectZip } = await import('./lib/core/output.js');
+      const { generatePrototype } = await import('../lib/core/generator.js');
+      const { createProjectZip } = await import('../lib/core/output.js');
       
       if (opts.provider || opts.model) {
         setAIConfig({ 
@@ -232,8 +233,8 @@ async function main() {
     .option('-p, --port <port>', 'Port number', (v) => Number(v))
     .action(async (opts) => {
       showBanner();
-      const { getConfigValue } = await import('./lib/core/config.js');
-      const { startWebServer } = await import('./lib/web/server.js');
+      const { getConfigValue } = await import('../lib/core/config.js');
+      const { startWebServer } = await import('../lib/web/server.js');
       const port = opts.port || getConfigValue('webPort', 3000);
       await startWebServer(port);
     });
@@ -257,7 +258,7 @@ async function main() {
 
       if (opts.list) {
         console.log(chalk.white('\nAvailable providers:'));
-        const providers = await import('./lib/core/config.js').then(m => m.getAvailableProviders());
+        const providers = await import('../lib/core/config.js').then(m => m.getAvailableProviders());
         providers.forEach(p => {
           console.log(`  ${chalk.cyan(p.id)}: ${p.name}`);
         });
@@ -314,8 +315,8 @@ async function main() {
     console.log('');
     
     if (parsedOpts.web) {
-      const { getConfigValue } = await import('./lib/core/config.js');
-      const { startWebServer } = await import('./lib/web/server.js');
+      const { getConfigValue } = await import('../lib/core/config.js');
+      const { startWebServer } = await import('../lib/web/server.js');
       await startWebServer(getConfigValue('webPort', 3000));
     } else {
       await startTUI();
