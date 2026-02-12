@@ -2,10 +2,7 @@
 
 /**
  * ProtoForge CLI Entry Point
- * AI-powered prototype builder for hardware, software, and hybrid projects
- *
- * ANTI-AI-DESIGN: Built with brutalist aesthetics, terminal-first philosophy,
- * and zero concessions to the "AI assistant" chat bubble paradigm.
+ * Inspired by OpenClaw's CLI design
  */
 
 // Register esbuild for JSX transpilation before any imports
@@ -16,27 +13,39 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import fs from 'fs-extra';
 import chalk from 'chalk';
-import { loadUserEnv } from '../lib/core/env.js';
+import { loadUserEnv } from './lib/core/env.js';
+import { 
+  getConfig, 
+  getConfigValue, 
+  setConfigValue, 
+  getAIConfig, 
+  setAIConfig,
+  runSetupWizard,
+  printConfigStatus,
+  resetConfig,
+  exportConfig,
+  importConfig,
+  watchConfig,
+  unwatchConfig
+} from './lib/core/config.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const packageJson = JSON.parse(
-  fs.readFileSync(path.join(__dirname, '../package.json'), 'utf-8')
+  fs.readFileSync(path.join(__dirname, 'package.json'), 'utf-8')
 );
 
 const BANNER = `
-${chalk.cyan('╔══════════════════════════════════════════════════════════════════════════════════════════════╗')}
-${chalk.cyan('║')}                                                                                              ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('██████╗ ██████╗  ██████╗ ████████╗ ██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('██╔══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔═══██╗██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('██████╔╝██████╔╝██║   ██║   ██║   ██║   ██║█████╗  ██║   ██║██████╔╝██║  ███╗█████╗  ')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('██╔═══╝ ██╔══██╗██║   ██║   ██║   ██║   ██║██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝  ')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('██║     ██║  ██║╚██████╔╝   ██║   ╚██████╔╝██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.white('╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝')}  ${chalk.cyan('║')}
-${chalk.cyan('║')}                                                                                              ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.yellow('AI-POWERED PROTOTYPE BUILDER')}                                                            ${chalk.cyan('║')}
-${chalk.cyan('║')}  ${chalk.dim('v' + packageJson.version + ' │ NO CHAT BUBBLES │ NO GRADIENTS │ TERMINAL FIRST')}                             ${chalk.cyan('║')}
-${chalk.cyan('║')}                                                                                              ${chalk.cyan('║')}
-${chalk.cyan('╚══════════════════════════════════════════════════════════════════════════════════════════════╝')}
+${chalk.cyan('╔══════════════════════════════════════════════════════════════════════════════╗')}
+${chalk.cyan('║')}  ${chalk.white('██████╗ ██████╗  ██████╗ ████████╗ ██████╗ ███████╗ ██████╗')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.white('██╔══██╗██╔══██╗██╔═══██╗╚══██╔══╝██╔═══██╗██╔════╝██╔═══██╗')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.white('██████╔╝██████╔╝██║   ██║   ██║   ██║   ██║█████╗  ██║   ██║')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.white('██╔═══╝ ██╔══██╗██║   ██║   ██║   ██║   ██║██╔══╝  ██║   ██║')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.white('██║     ██║  ██║╚██████╔╝   ██║   ╚██████╔╝██║     ╚██████╔╝')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.white('╚═╝     ╚═╝  ╚═╝ ╚═════╝    ╚═╝    ╚═════╝ ╚═╝      ╚═════╝')}               ${chalk.cyan('║')}
+${chalk.cyan('║')}                                                                              ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.yellow('AI-POWERED PROTOTYPE BUILDER')}  ${chalk.dim('│')}  ${chalk.white('Hardware + Software + Hybrid')}              ${chalk.cyan('║')}
+${chalk.cyan('║')}  ${chalk.dim('v' + packageJson.version + ' │ protoforge [command] │ protoforge web │ protoforge tui')}               ${chalk.cyan('║')}
+${chalk.cyan('╚══════════════════════════════════════════════════════════════════════════════╝')}
 `;
 
 function showBanner() {
@@ -49,15 +58,14 @@ async function startTUI() {
       'TUI requires an interactive TTY. Try: protoforge build "..."  or  protoforge web'
     );
   }
-  // Dynamic import to keep CLI fast when used non-interactively.
   const { render } = await import('ink');
   const React = (await import('react')).default;
-  const { default: App } = await import('../lib/ui/App.js');
+  const { default: App } = await import('./lib/ui/App.js');
   render(React.createElement(App));
 }
 
 async function main() {
-  // Load ~/.protoforge/.env so provider API keys work in CLI/TUI/Web.
+  // Load ~/.protoforge/.env so provider API keys work.
   loadUserEnv();
 
   const program = new Command();
@@ -72,33 +80,41 @@ async function main() {
       writeOut: (str) => process.stdout.write(str)
     });
 
+  // ═══════════════════════════════════════════════════════
+  // TUI Command
+  // ═══════════════════════════════════════════════════════
   program
-    .command('start')
+    .command('tui')
+    .alias('start')
     .description('Start the interactive TUI')
     .action(async () => {
       showBanner();
       await startTUI();
     });
 
+  // ═══════════════════════════════════════════════════════
+  // Build Command
+  // ═══════════════════════════════════════════════════════
   program
     .command('build')
-    .description('Generate a prototype package from a natural language description')
-    .argument('<description...>', 'Prototype description in quotes')
+    .description('Generate a prototype from description')
+    .argument('<description...>', 'Prototype description')
     .option('-t, --type <type>', 'Project type: hardware|software|hybrid|auto', 'auto')
-    .option('-o, --output <dir>', 'Output directory (default from config)')
-    .option('--provider <provider>', 'AI provider override for this run (updates config)')
-    .option('--model <model>', 'Model override for this run (updates config)')
-    .option('--stream', 'Stream tokens to stdout', false)
-    .option('--zip', 'Create a zip archive of the generated project', false)
-    .action(async (descriptionParts, opts) => {
-      const description = descriptionParts.join(' ').trim();
-      const { generatePrototype } = await import('../lib/core/generator.js');
-      const { createProjectZip } = await import('../lib/core/output.js');
-      const { setAIConfig } = await import('../lib/core/config.js');
-
-      // Optional overrides (persisted to config to keep UX simple)
+    .option('-o, --output <dir>', 'Output directory')
+    .option('--provider <provider>', 'AI provider override')
+    .option('--model <model>', 'Model override')
+    .option('--stream', 'Stream output', false)
+    .option('--zip', 'Create zip archive', false)
+    .action(async (descParts, opts) => {
+      const description = descParts.join(' ').trim();
+      const { generatePrototype } = await import('./lib/core/generator.js');
+      const { createProjectZip } = await import('./lib/core/output.js');
+      
       if (opts.provider || opts.model) {
-        setAIConfig({ provider: opts.provider, model: opts.model });
+        setAIConfig({ 
+          provider: opts.provider, 
+          model: opts.model 
+        });
       }
 
       showBanner();
@@ -114,37 +130,73 @@ async function main() {
 
       if (opts.zip) {
         const zipPath = await createProjectZip(result.projectDir);
-        process.stdout.write(`\n${chalk.green('✓ ZIP:')} ${zipPath}\n`);
+        console.log(chalk.green('✓ ZIP:'), zipPath);
       }
     });
 
+  // ═══════════════════════════════════════════════════════
+  // Setup Wizard (OpenClaw-style)
+  // ═══════════════════════════════════════════════════════
   program
-    .command('setup')
+    .command('onboard')
+    .alias('setup', 'wizard')
     .description('Run the interactive setup wizard')
     .action(async () => {
       showBanner();
-      const { setupWizard } = await import('../lib/ui/setup.js');
-      await setupWizard();
+      await runSetupWizard();
     });
 
+  // ═══════════════════════════════════════════════════════
+  // Config Management (OpenClaw-style)
+  // ═══════════════════════════════════════════════════════
   program
     .command('config')
-    .description('View or edit ProtoForge configuration')
-    .option('--get <key>', 'Get a value (e.g., aiProvider, model, outputDir)')
-    .option('--set <pair...>', 'Set values: key=value (repeatable)')
-    .option('--reset', 'Reset configuration to defaults')
+    .description('View or edit configuration')
+    .option('--get <key>', 'Get a config value')
+    .option('--set <pair...>', 'Set values: key=value')
+    .option('--unset <key>', 'Unset a value')
+    .option('--reset', 'Reset all config')
+    .option('--export [file]', 'Export config to JSON')
+    .option('--import <file>', 'Import config from JSON')
+    .option('--status', 'Show config status')
+    .option('--watch', 'Watch config for changes')
     .action(async (opts) => {
-      const { getConfig, getConfigValue, setConfigValue, resetConfig } = await import('../lib/core/config.js');
+      if (opts.status) {
+        printConfigStatus();
+        return;
+      }
 
       if (opts.reset) {
         resetConfig();
-        process.stdout.write(chalk.green('✓ Config reset to defaults\n'));
+        console.log(chalk.green('✓ Config reset to defaults'));
+        return;
+      }
+
+      if (opts.export) {
+        const file = await exportConfig(opts.export === true ? null : opts.export);
+        console.log(chalk.green('✓ Config exported to:'), file);
+        return;
+      }
+
+      if (opts.import) {
+        await importConfig(opts.import);
+        console.log(chalk.green('✓ Config imported'));
+        return;
+      }
+
+      if (opts.watch) {
+        console.log(chalk.dim('Watching config for changes. Press Ctrl+C to stop.'));
+        watchConfig((config) => {
+          console.log(chalk.cyan('[Config changed]'));
+        });
+        // Keep process alive
+        await new Promise(() => {});
         return;
       }
 
       if (opts.get) {
-        const v = getConfigValue(opts.get);
-        process.stdout.write(`${v === undefined ? '' : JSON.stringify(v, null, 2)}\n`);
+        const value = getConfigValue(opts.get);
+        console.log(value === undefined ? '' : JSON.stringify(value, null, 2));
         return;
       }
 
@@ -154,63 +206,116 @@ async function main() {
           if (idx === -1) throw new Error(`Invalid --set pair: ${pair} (expected key=value)`);
           const key = pair.slice(0, idx);
           let value = pair.slice(idx + 1);
-          try {
-            // allow JSON values
-            value = JSON.parse(value);
-          } catch {
-            // keep as string
-          }
+          try { value = JSON.parse(value); } catch {}
           setConfigValue(key, value);
         }
-        process.stdout.write(chalk.green('✓ Config updated\n'));
+        console.log(chalk.green('✓ Config updated'));
         return;
       }
 
-      process.stdout.write(JSON.stringify(getConfig(), null, 2) + '\n');
+      if (opts.unset) {
+        unsetConfigValue(opts.unset);
+        console.log(chalk.green('✓ Config value unset'));
+        return;
+      }
+
+      // Default: show current config
+      console.log(JSON.stringify(getConfig(), null, 2));
     });
 
-  program
-    .command('install')
-    .description('Print recommended install commands for your system')
-    .action(() => {
-      showBanner();
-      process.stdout.write(
-        [
-          'Install (npm):',
-          '  npm install -g protoforge',
-          '',
-          'From source:',
-          '  git clone https://github.com/snarsnat/protoforge.git',
-          '  cd protoforge',
-          '  npm install',
-          '  npm link',
-          ''
-        ].join('\n')
-      );
-    });
-
+  // ═══════════════════════════════════════════════════════
+  // Web Interface
+  // ═══════════════════════════════════════════════════════
   program
     .command('web')
-    .description('Start the local web dashboard')
-    .option('-p, --port <port>', 'Port (default from config or 3000)', (v) => Number(v))
+    .description('Start the web dashboard')
+    .option('-p, --port <port>', 'Port number', (v) => Number(v))
     .action(async (opts) => {
       showBanner();
-      const { getConfigValue } = await import('../lib/core/config.js');
-      const { startWebServer } = await import('../lib/web/server.js');
+      const { getConfigValue } = await import('./lib/core/config.js');
+      const { startWebServer } = await import('./lib/web/server.js');
       const port = opts.port || getConfigValue('webPort', 3000);
       await startWebServer(port);
+    });
+
+  // ═══════════════════════════════════════════════════════
+  // Model Management (OpenClaw-style)
+  // ═══════════════════════════════════════════════════════
+  program
+    .command('model')
+    .description('Manage AI models')
+    .option('--list', 'List available models')
+    .option('--status', 'Show model status')
+    .option('--set <provider/model>', 'Set primary model')
+    .option('--fallback <provider/model>', 'Add fallback model')
+    .action(async (opts) => {
+      if (opts.status) {
+        const ai = getAIConfig();
+        printConfigStatus();
+        return;
+      }
+
+      if (opts.list) {
+        console.log(chalk.white('\nAvailable providers:'));
+        const providers = await import('./lib/core/config.js').then(m => m.getAvailableProviders());
+        providers.forEach(p => {
+          console.log(`  ${chalk.cyan(p.id)}: ${p.name}`);
+        });
+        return;
+      }
+
+      if (opts.set) {
+        const [provider, model] = opts.set.split('/');
+        setAIConfig({ primaryProvider: provider, primaryModel: model });
+        console.log(chalk.green('✓ Model set:'), `${provider}/${model}`);
+        return;
+      }
+
+      // Default: show current model
+      const ai = getAIConfig();
+      console.log(`${ai.primaryProvider}/${ai.primaryModel}`);
+    });
+
+  // ═══════════════════════════════════════════════════════
+  // Install Command
+  // ═══════════════════════════════════════════════════════
+  program
+    .command('install')
+    .description('Print install commands')
+    .action(() => {
+      showBanner();
+      console.log([
+        'Install (npm):',
+        '  npm install -g protoforge',
+        '',
+        'From source:',
+        '  git clone https://github.com/snarsnat/protoforge.git',
+        '  cd protoforge',
+        '  npm install',
+        '  npm link',
+        ''
+      ].join('\n'));
     });
 
   await program.parseAsync(process.argv);
 
   const parsedOpts = program.opts();
 
-  // Default behavior: start TUI (or web) if no subcommand provided.
+  // Default behavior
   if (!program.args.length) {
     showBanner();
+    console.log(chalk.dim('Commands:'));
+    console.log(chalk.dim('  protoforge tui        ') + 'Start interactive TUI');
+    console.log(chalk.dim('  protoforge web       ') + 'Start web interface');
+    console.log(chalk.dim('  protoforge onboard   ') + 'Setup wizard');
+    console.log(chalk.dim('  protoforge build ".."') + 'Generate prototype');
+    console.log(chalk.dim('  protoforge config    ') + 'Manage config');
+    console.log(chalk.dim('  protoforge model     ') + 'Manage models');
+    console.log('');
+    
     if (parsedOpts.web) {
-      const { getConfigValue } = await import('../lib/core/config.js');
-      const { startWebServer } = await import('../lib/web/server.js');
+      const { getConfigValue } = await import('./lib/core/config.js');
+      const { startWebServer } = await import('./lib/web/server.js');
       await startWebServer(getConfigValue('webPort', 3000));
     } else {
       await startTUI();
